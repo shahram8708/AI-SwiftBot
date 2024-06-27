@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SwiftBot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        #chatbox {
+            height: 65vh;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #messages {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            align-self: flex-start;
+            background-color: #f1f1f1;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .user {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            color: #333;
+            text-align: right;
+        }
+
+        .bot {
+            background-color: #007bff;
+            color: #fff;
+            align-self: flex-start;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 85px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .wave {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+            width: 100%;
+            position: relative;
+            margin: 5px 0;
+        }
+
+        .wave div {
+            width: 10px;
+            height: 10px;
+            background-color: #007bff;
+            border-radius: 50%;
+            margin: 3px;
+            animation: wave 1s infinite;
+        }
+
+        .wave div:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .wave div:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .wave div:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .wave div:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+
+            0%,
+            60%,
+            100% {
+                transform: initial;
+            }
+
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>AI SwiftBot</h1>
+        <div id="chatbox">
+            <div id="messages"></div>
+        </div>
+        <div style="display: flex; justify-content: center;">
+            <input type="text" id="userInput" placeholder="Type your message here...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (message === '') return;
+
+            displayMessage(message, 'user');
+            input.value = '';
+
+            showLoadingWave();
+
+            const response = await getBotResponse(message);
+
+            hideLoadingWave();
+
+            displayMessage(response, 'bot');
+        }
+
+        function displayMessage(message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${type}`;
+            messageElement.innerText = message;
+
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoadingWave() {
+            const waveElement = document.createElement('div');
+            waveElement.className = 'wave';
+            waveElement.id = 'loadingWave';
+            waveElement.innerHTML = `
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            `;
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.appendChild(waveElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideLoadingWave() {
+            const waveElement = document.getElementById('loadingWave');
+            if (waveElement) {
+                waveElement.remove();
+            }
+        }
+
+        async function getBotResponse(message) {
+            try {
+                const response = await fetch('http://localhost:5000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message }),
+                });
+                const data = await response.json();
+                return data.reply || 'Sorry, I could not understand.';
+            } catch (error) {
+                console.error('Error fetching bot response:', error);
+                return 'Sorry, something went wrong.';
+            }
+        }
+    </script>
+</body>
+
+</html>
